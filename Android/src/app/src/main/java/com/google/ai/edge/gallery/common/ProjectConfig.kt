@@ -19,26 +19,33 @@ package com.google.ai.edge.gallery.common
 import androidx.core.net.toUri
 import net.openid.appauth.AuthorizationServiceConfiguration
 
+/**
+ * HuggingFace OAuth configuration for AISU Akili.
+ *
+ * The app uses HF OAuth to authenticate model downloads from litert-community
+ * (public, non-gated repos). You need to create a HuggingFace OAuth app at:
+ * https://huggingface.co/settings/applications
+ *
+ * Set the redirect URI to: ug.aistudio.learn://oauth/callback
+ *
+ * TODO: Replace clientId with your actual HF OAuth App client ID.
+ */
 object ProjectConfig {
-  // Hugging Face Client ID.
-  //
-  const val clientId = "REPLACE_WITH_YOUR_CLIENT_ID_IN_HUGGINGFACE_APP"
+  // Hugging Face OAuth App Client ID
+  // Create yours at: https://huggingface.co/settings/applications
+  const val clientId = "38d6986f-25a6-442c-8456-ce520b4834b4"
 
-  // Registered redirect URI.
-  //
-  // The scheme needs to match the
-  // "android.defaultConfig.manifestPlaceholders["appAuthRedirectScheme"]" field in
-  // "build.gradle.kts".
-  const val redirectUri = "REPLACE_WITH_YOUR_REDIRECT_URI_IN_HUGGINGFACE_APP"
+  // Redirect URI — must match what you registered in your HF OAuth App
+  // and the appAuthRedirectScheme in build.gradle.kts
+  const val redirectUri = "ug.aistudio.learn://oauth/callback"
 
-  // OAuth 2.0 Endpoints (Authorization + Token Exchange)
+  // OAuth 2.0 Endpoints
   private const val authEndpoint = "https://huggingface.co/oauth/authorize"
   private const val tokenEndpoint = "https://huggingface.co/oauth/token"
 
-  // OAuth service configuration (AppAuth library requires this)
   val authServiceConfig =
     AuthorizationServiceConfiguration(
-      authEndpoint.toUri(), // Authorization endpoint
-      tokenEndpoint.toUri(), // Token exchange endpoint
+      authEndpoint.toUri(),
+      tokenEndpoint.toUri(),
     )
 }

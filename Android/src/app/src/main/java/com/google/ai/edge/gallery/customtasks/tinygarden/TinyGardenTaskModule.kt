@@ -13,8 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// AISU Akili: Tiny Garden is disabled — it requires the FunctionGemma 270m fine-tune,
+// which is not in the Gemma 3 1B/2B set we use for students.
+// To re-enable, uncomment the block below.
+
 package com.google.ai.edge.gallery.customtasks.tinygarden
 
+/*
 import com.google.ai.edge.gallery.customtasks.common.CustomTask
 import dagger.Module
 import dagger.Provides
@@ -31,3 +37,4 @@ internal object TinyGardenTaskModule {
     return TinyGardenTask()
   }
 }
+*/

@@ -26,16 +26,16 @@
   <string name="aicore_image_limit_message" translatable="false">The current model can only support 1 image per chat. To ask about another image, create a new chat.</string>
   <string name="aichat_initializing_title" translatable="false">Initializing model</string>
   <string name="aichat_initializing_content" translatable="false">Sit tight, this can take up to 1 minute</string>
-  <string name="app_intro" translatable="false">Explore a world of amazing on-device models from</string>
-  <string name="app_name" translatable="false">Google AI Edge Gallery</string>
-  <string name="app_name_first_part" translatable="false">Google AI</string>
-  <string name="app_name_second_part" translatable="false">Edge Gallery</string>
+  <string name="app_intro" translatable="false">Your offline AI companion, powered by open-source models from</string>
+  <string name="app_name" translatable="false">Akili</string>
+  <string name="app_name_first_part" translatable="false">AI Studio</string>
+  <string name="app_name_second_part" translatable="false">Uganda</string>
   <string name="askimage_emptystate_title" translatable="false">Ask Image</string>
   <string name="askimage_emptystate_content" translatable="false">To get started, tap the + below to add an image (max 10 images per chat) and type a prompt to ask a question about it!</string>
   <string name="askimage_emptystate_content_aicore" translatable="false">To get started, tap the + below to add an image (max 1 image per chat) and type a prompt to ask a question about it!</string>
   <string name="askaudio_emptystate_title" translatable="false">Ask Audio</string>
   <string name="askaudio_emptystate_content" translatable="false">To get started, tap the + below to add a audio clip (limited to 1 clip up to 30 seconds) and type a prompt to transcribe or translate it!</string>
-  <string name="gallery_news_notification_title" translatable="false">Gallery News</string>
+  <string name="gallery_news_notification_title" translatable="false">Akili News</string>
   <string name="baseline" translatable="false">Baseline</string>
   <string name="basic_info" translatable="false">Basic info</string>
   <string name="benchmark" translatable="false">Benchmark</string>
@@ -90,9 +90,9 @@
   <string name="download" translatable="false">Download</string>
   <string name="downloaded_size" translatable="false">%1$s downloaded</string>
   <string name="drawer_settings_label" translatable="false">Settings</string>
-  <string name="drawer_settings_description" translatable="false">Manage application settings</string>
+  <string name="drawer_settings_description" translatable="false">Manage app settings</string>
   <string name="drawer_models_label" translatable="false">Models</string>
-  <string name="drawer_models_description" translatable="false">Browse, try, and benchmark models</string>
+  <string name="drawer_models_description" translatable="false">Browse, download, and benchmark models</string>
   <string name="edit" translatable="false">Edit</string>
   <string name="edit_secret" translatable="false">Edit secret</string>
   <string name="enter_instruction" translatable="false">Enter instruction</string>
@@ -175,7 +175,7 @@
   <string name="test" translatable="false">Test</string>
   <string name="text_image_generation_text_field_placeholder" translatable="false">Type prompt…</string>
   <string name="text_input_placeholder_llm_chat" translatable="false">Type prompt…</string>
-  <string name="tos_dialog_title_app" translatable="false">Welcome to Google AI Edge Gallery</string>
+  <string name="tos_dialog_title_app" translatable="false">Welcome to Akili</string>
   <string name="tos_dialog_title_gemma" translatable="false">Gemma Terms of Use</string>
   <string name="tos_dialog_accept_and_continue_button_label" translatable="false">Accept &amp; continue</string>
   <string name="tos_dialog_agree_and_continue_button_label" translatable="false">Agree &amp; continue</string>
@@ -231,7 +231,7 @@
 
   <!-- Strings for skills -->
   <string name="aichat_emptystate_title" translatable="false">AI Chat</string>
-  <string name="aichat_emptystate_content" translatable="false">Chat with on-device large language models.</string>
+  <string name="aichat_emptystate_content" translatable="false">Chat with powerful open-source AI models — 100% offline and private.</string>
   <string name="add_script" translatable="false">Add script</string>
   <string name="add_default_script" translatable="false">Add default script</string>
   <string name="add_skill" translatable="false">Add skill</string>
@@ -249,7 +249,7 @@
   <string name="add_skill_manual_input_sheet_title" translatable="false">Create a skill</string>
   <string name="agent_skills" translatable="false">Agent Skills</string>
   <string name="agent_skills_description" translatable="false">Use specialized, high-order reasoning by loading different skills or creating your own.\n\nTry tapping a sample prompt below to see Agent Skills in action!</string>
-  <string name="disclaimer_dialog_content" translatable="false">Third-party skills are not authored or endorsed by Google. Google is not responsible for their contents, security, or data handling practices.\n\nPlease exercise caution before providing sensitive information, such as personal identification, tokens, or API keys.\n\nAny use of an Agent Skill is subject to the applicable terms for that Skill.</string>
+  <string name="disclaimer_dialog_content" translatable="false">Third-party skills are not authored or endorsed by AI Studio Uganda. AISU is not responsible for their contents, security, or data handling practices.\n\nPlease exercise caution before providing sensitive information, such as personal identification, tokens, or API keys.\n\nAny use of an Agent Skill is subject to the applicable terms for that Skill.</string>
   <string name="disclaimer_dialog_title" translatable="false">Add third-party skill</string>
   <string name="disclaimer_dialog_agree" translatable="false">Agree</string>
   <string name="delete_script_dialog_title" translatable="false">Delete script</string>

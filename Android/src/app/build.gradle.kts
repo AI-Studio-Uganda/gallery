@@ -16,8 +16,8 @@
 
 plugins {
   alias(libs.plugins.android.application)
-  // Note: set apply to true to enable google-services (requires google-services.json).
-  alias(libs.plugins.google.services) apply false
+  // Firebase / google-services disabled — AISU uses no cloud analytics
+  // alias(libs.plugins.google.services) apply false
   alias(libs.plugins.kotlin.android)
   alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.kotlin.serialization)
@@ -33,16 +33,17 @@ android {
   compileSdk = 35
 
   defaultConfig {
-    applicationId = "com.google.aiedge.gallery"
+    // AISU Uganda package identifier
+    applicationId = "ug.aistudio.learn"
     minSdk = 31
     targetSdk = 35
-    versionCode = 29
-    versionName = "1.0.12"
+    versionCode = 1
+    versionName = "1.0.0"
 
-    // Needed for HuggingFace auth workflows.
-    // Use the scheme of the "Redirect URLs" in HuggingFace app.
-    manifestPlaceholders["appAuthRedirectScheme"] =
-        "REPLACE_WITH_YOUR_REDIRECT_SCHEME_IN_HUGGINGFACE_APP"
+    // HuggingFace auth not needed — AISU uses only open-source, non-gated models
+    // The openid.appauth library still requires this placeholder in its merged manifest.
+    // Set to a dummy value since HuggingFace OAuth is not configured.
+    manifestPlaceholders["appAuthRedirectScheme"] = "ug.aistudio.learn"
     manifestPlaceholders["applicationName"] = "com.google.ai.edge.gallery.GalleryApplication"
     manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher"
 
@@ -89,6 +90,8 @@ dependencies {
   implementation(libs.androidx.lifecycle.process)
   implementation(libs.androidx.security.crypto)
   implementation(libs.androidx.webkit)
+  // Required by SkillManagerViewModel for local skill import via file picker
+  implementation("androidx.documentfile:documentfile:1.0.1")
   implementation(libs.litertlm)
   implementation(libs.commonmark)
   implementation(libs.richtext)
@@ -99,15 +102,17 @@ dependencies {
   implementation(libs.camerax.camera2)
   implementation(libs.camerax.lifecycle)
   implementation(libs.camerax.view)
+  // HuggingFace OAuth — kept for future use but not configured for open models
   implementation(libs.openid.appauth)
   implementation(libs.androidx.splashscreen)
   implementation(libs.protobuf.javalite)
   implementation(libs.hilt.android)
   implementation(libs.hilt.navigation.compose)
   implementation(libs.play.services.oss.licenses)
-  implementation(platform(libs.firebase.bom))
-  implementation(libs.firebase.analytics)
-  implementation(libs.firebase.messaging)
+  // Firebase removed — AISU does not use cloud analytics or push notifications
+  // implementation(platform(libs.firebase.bom))
+  // implementation(libs.firebase.analytics)
+  // implementation(libs.firebase.messaging)
   implementation(libs.androidx.exifinterface)
   implementation(libs.moshi.kotlin)
   kapt(libs.hilt.android.compiler)

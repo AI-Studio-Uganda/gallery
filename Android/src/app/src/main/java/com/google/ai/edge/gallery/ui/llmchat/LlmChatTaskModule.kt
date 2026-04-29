@@ -135,8 +135,10 @@ internal object LlmChatTaskModule {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Ask image.
+// Ask image — DISABLED for AISU Akili (requires multimodal model not available in Gemma 3 1B/2B)
+// To re-enable, uncomment the module below.
 
+/*
 class LlmAskImageTask @Inject constructor() : CustomTask {
   override val task: Task =
     Task(
@@ -147,60 +149,24 @@ class LlmAskImageTask @Inject constructor() : CustomTask {
       models = mutableListOf(),
       description = "Ask questions about images with on-device large language models",
       shortDescription = "Ask questions about images",
-      docUrl = "https://github.com/google-ai-edge/LiteRT-LM/blob/main/kotlin/README.md",
-      sourceCodeUrl =
-        "https://github.com/google-ai-edge/gallery/blob/main/Android/src/app/src/main/java/com/google/ai/edge/gallery/ui/llmchat/LlmChatModelHelper.kt",
-      textInputPlaceHolderRes = R.string.text_input_placeholder_llm_chat,
     )
-
-  override fun initializeModelFn(
-    context: Context,
-    coroutineScope: CoroutineScope,
-    model: Model,
-    onDone: (String) -> Unit,
-  ) {
-    model.runtimeHelper.initialize(
-      context = context,
-      model = model,
-      supportImage = true,
-      supportAudio = false,
-      onDone = onDone,
-      coroutineScope = coroutineScope,
-    )
-  }
-
-  override fun cleanUpModelFn(
-    context: Context,
-    coroutineScope: CoroutineScope,
-    model: Model,
-    onDone: () -> Unit,
-  ) {
-    model.runtimeHelper.cleanUp(model = model, onDone = onDone)
-  }
-
-  @Composable
-  override fun MainScreen(data: Any) {
-    val myData = data as CustomTaskDataForBuiltinTask
-    LlmAskImageScreen(
-      modelManagerViewModel = myData.modelManagerViewModel,
-      navigateUp = myData.onNavUp,
-    )
-  }
+  override fun initializeModelFn(context: Context, coroutineScope: CoroutineScope, model: Model, onDone: (String) -> Unit) {}
+  override fun cleanUpModelFn(context: Context, coroutineScope: CoroutineScope, model: Model, onDone: () -> Unit) {}
+  @Composable override fun MainScreen(data: Any) {}
 }
 
 @Module
-@InstallIn(SingletonComponent::class) // Or another component that fits your scope
+@InstallIn(SingletonComponent::class)
 internal object LlmAskImageModule {
-  @Provides
-  @IntoSet
-  fun provideTask(): CustomTask {
-    return LlmAskImageTask()
-  }
+  @Provides @IntoSet fun provideTask(): CustomTask = LlmAskImageTask()
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Ask audio.
+// Audio Scribe — DISABLED for AISU Akili (requires audio-capable model not in Gemma 3 1B/2B)
+// To re-enable, uncomment the module below.
 
+/*
 class LlmAskAudioTask @Inject constructor() : CustomTask {
   override val task: Task =
     Task(
@@ -209,56 +175,17 @@ class LlmAskAudioTask @Inject constructor() : CustomTask {
       category = Category.LLM,
       icon = Icons.Outlined.Mic,
       models = mutableListOf(),
-      description =
-        "Instantly transcribe and/or translate audio clips using on-device large language models",
+      description = "Transcribe and translate audio clips using on-device language models",
       shortDescription = "Transcribe and translate audio",
-      docUrl = "https://github.com/google-ai-edge/LiteRT-LM/blob/main/kotlin/README.md",
-      sourceCodeUrl =
-        "https://github.com/google-ai-edge/gallery/blob/main/Android/src/app/src/main/java/com/google/ai/edge/gallery/ui/llmchat/LlmChatModelHelper.kt",
-      textInputPlaceHolderRes = R.string.text_input_placeholder_llm_chat,
     )
-
-  override fun initializeModelFn(
-    context: Context,
-    coroutineScope: CoroutineScope,
-    model: Model,
-    onDone: (String) -> Unit,
-  ) {
-    model.runtimeHelper.initialize(
-      context = context,
-      model = model,
-      supportImage = false,
-      supportAudio = true,
-      onDone = onDone,
-      coroutineScope = coroutineScope,
-    )
-  }
-
-  override fun cleanUpModelFn(
-    context: Context,
-    coroutineScope: CoroutineScope,
-    model: Model,
-    onDone: () -> Unit,
-  ) {
-    model.runtimeHelper.cleanUp(model = model, onDone = onDone)
-  }
-
-  @Composable
-  override fun MainScreen(data: Any) {
-    val myData = data as CustomTaskDataForBuiltinTask
-    LlmAskAudioScreen(
-      modelManagerViewModel = myData.modelManagerViewModel,
-      navigateUp = myData.onNavUp,
-    )
-  }
+  override fun initializeModelFn(context: Context, coroutineScope: CoroutineScope, model: Model, onDone: (String) -> Unit) {}
+  override fun cleanUpModelFn(context: Context, coroutineScope: CoroutineScope, model: Model, onDone: () -> Unit) {}
+  @Composable override fun MainScreen(data: Any) {}
 }
 
 @Module
-@InstallIn(SingletonComponent::class) // Or another component that fits your scope
+@InstallIn(SingletonComponent::class)
 internal object LlmAskAudioModule {
-  @Provides
-  @IntoSet
-  fun provideTask(): CustomTask {
-    return LlmAskAudioTask()
-  }
+  @Provides @IntoSet fun provideTask(): CustomTask = LlmAskAudioTask()
 }
+*/

@@ -620,8 +620,8 @@ private fun AppTitle(enableAnimation: Boolean) {
 
 @Composable
 fun AppTitleGm4(enableAnimation: Boolean) {
-  val text1 = "Google"
-  val text2 = "AI Edge Gallery"
+  val text1 = "AI Studio"
+  val text2 = "Uganda"
   val annotatedText = buildAnnotatedString {
     withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onSurface)) { append(text1) }
     append(" ")
@@ -662,13 +662,11 @@ private fun IntroText(enableAnimation: Boolean, gm4: Boolean) {
     }
 
   val introText = buildAnnotatedString {
-    val gemma4Url = "https://ai.google.dev/gemma"
+    val aisuUrl = "https://aistudio.ug"
     if (gm4) {
-      append("Discover the power of on-device AI models from the ")
+      append("Discover the power of offline AI with open-source models from the ")
       append(buildTrackableUrlAnnotatedString(url = litertUrl, linkText = "LiteRT community"))
-      append(", featuring the all-new ")
-      append(buildTrackableUrlAnnotatedString(url = gemma4Url, linkText = "Gemma 4"))
-      append(".")
+      append(". Runs entirely on your device \u2014 no internet needed.")
     } else {
       append("${stringResource(R.string.app_intro)} ")
       append(
@@ -712,14 +710,13 @@ private fun TryGm4IntroText(enableAnimation: Boolean) {
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(8.dp),
   ) {
-    Icon(
-      ImageVector.vectorResource(R.drawable.gemma_logo),
-      contentDescription = null,
+    Text(
+      text = "⚡",
+      style = MaterialTheme.typography.titleMedium,
       modifier = Modifier.size(24.dp),
-      tint = MaterialTheme.colorScheme.primary,
     )
     Text(
-      text = "Try Gemma 4 today",
+      text = "AI offline. Always available.",
       style =
         MaterialTheme.typography.headlineSmall.copy(
           fontWeight = FontWeight.Medium,
@@ -731,7 +728,7 @@ private fun TryGm4IntroText(enableAnimation: Boolean) {
   }
 
   Text(
-    "Gemma 4 E2B & E4B are here! Try them in AI Chat, Agent Skills, or the use cases below.",
+    "Gemma 3 1B & 2B are available now \u2014 lightweight models that run fast even on budget phones. Try them in AI Chat, Agent Skills, or the use cases below.",
     style = MaterialTheme.typography.bodyMedium,
     modifier =
       Modifier.graphicsLayer {

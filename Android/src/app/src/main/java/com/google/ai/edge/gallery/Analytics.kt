@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Google LLC
+ * Copyright 2025 AI Studio Uganda
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,27 @@
 
 package com.google.ai.edge.gallery
 
-import android.util.Log
-import com.google.firebase.Firebase
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.analytics
+import android.os.Bundle
 
-private var hasLoggedAnalyticsWarning = false
+/**
+ * No-op analytics stub for AISU Akili.
+ *
+ * All AI processing runs 100% on-device. No usage data is collected or sent anywhere.
+ * This class satisfies all firebaseAnalytics?.logEvent(...) call-sites throughout the codebase
+ * without importing any Firebase dependencies.
+ */
+class AisuAnalytics {
+  /** No-op: logs nothing. Satisfies all call-sites that previously used FirebaseAnalytics. */
+  fun logEvent(name: String, params: Bundle?) {
+    // intentionally empty — AISU does not collect analytics
+  }
+}
 
-val firebaseAnalytics: FirebaseAnalytics?
-  get() =
-    runCatching { Firebase.analytics }
-      .onFailure { exception ->
-        // Firebase.analytics can throw an exception if goolgle-services is not set up, e.g.,
-        // missing google-services.json.
-        if (!hasLoggedAnalyticsWarning) {
-          Log.w("AGAnalyticsFirebase", "Firebase Analytics is not available", exception)
-        }
-      }
-      .getOrNull()
+/**
+ * Global analytics instance. Non-null so that `?.logEvent(...)` safe-calls compile cleanly.
+ * The underlying implementation is a no-op.
+ */
+val firebaseAnalytics: AisuAnalytics = AisuAnalytics()
 
 enum class GalleryEvent(val id: String) {
   CAPABILITY_SELECT(id = "capability_select"),

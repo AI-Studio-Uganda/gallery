@@ -16,7 +16,6 @@
 -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.google.ai.edge.gallery"
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-sdk
@@ -34,15 +33,11 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="com.google.android.apps.aicore.service.BIND_SERVICE" />
 
-    <!-- Additional permission required for push notification handling -->
-    <!-- Required for resurfacing notifications after boot -->
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- Required for GCM message handling -->
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-    <!-- Required for registering with Chime properly -->
-    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
-    <!-- Required before JellyBean MR1, optional for newer versions of Android. -->
-    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <!-- Push notification permissions (not used in this build) -->
+    <!-- <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" /> -->
+    <!-- <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" /> -->
+    <!-- <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" /> -->
+    <!-- <uses-permission android:name="android.permission.GET_ACCOUNTS" /> -->
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -56,7 +51,7 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="${appIcon}"
-        android:label="Edge Gallery"
+        android:label="Akili"
         android:roundIcon="${appIcon}"
         android:supportsRtl="true"
         android:theme="@style/Theme.Gallery"
@@ -118,31 +113,12 @@
             tools:node="merge">
         </service>
 
-        <!-- For Firebase Analytics. -->
-        <receiver
-            android:name="com.google.android.gms.measurement.AppMeasurementReceiver"
-            android:enabled="true"
-            android:exported="false" />
-        <service android:name="com.google.android.gms.measurement.AppMeasurementService"
-            android:enabled="true"
-            android:exported="false" />
-        <service
-            android:name="com.google.android.gms.measurement.AppMeasurementJobService"
-            android:enabled="true"
-            android:exported="false"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
-
-        <service
-            android:name=".GalleryFcmMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
-
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="gallery_high_priority_push_channel" />
+        <!-- Firebase Analytics removed — AISU Akili uses no cloud services -->
+        <!--
+        <receiver android:name="com.google.android.gms.measurement.AppMeasurementReceiver" ... />
+        <service android:name=".GalleryFcmMessagingService" ... />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" ... />
+        -->
 
         <uses-native-library android:name="libvndksupport.so" android:required="false"/>
         <uses-native-library android:name="libOpenCL.so" android:required="false"/>

@@ -82,6 +82,10 @@ private const val MODEL_ALLOWLIST_TEST_FILENAME = "model_allowlist_test.json"
 private const val ALLOWLIST_BASE_URL =
   "https://raw.githubusercontent.com/google-ai-edge/gallery/refs/heads/main/model_allowlists"
 
+// AISU: Always load the curated allowlist version regardless of app version string.
+// Our build version (1.0.0) doesn't map to a real GitHub allowlist file.
+private const val AISU_ALLOWLIST_VERSION = "1_0_12"
+
 private const val TEST_MODEL_ALLOW_LIST = ""
 
 data class ModelInitializationStatus(
@@ -1465,5 +1469,6 @@ constructor(
 }
 
 private fun getAllowlistUrl(version: String): String {
-  return "$ALLOWLIST_BASE_URL/${version}.json"
+  // Use the pinned AISU version so our custom build always loads correctly.
+  return "$ALLOWLIST_BASE_URL/$AISU_ALLOWLIST_VERSION.json"
 }
