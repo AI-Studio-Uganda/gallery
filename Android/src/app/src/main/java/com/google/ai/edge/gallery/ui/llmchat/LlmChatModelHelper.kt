@@ -113,7 +113,7 @@ object LlmChatModelHelper : LlmModelHelper {
         backend = preferredBackend,
         visionBackend = if (shouldEnableImage) visionBackend else null, // must be GPU for Gemma 3n
         audioBackend = if (shouldEnableAudio) Backend.CPU() else null, // must be CPU for Gemma 3n
-        maxNumTokens = maxTokens,
+        maxNumTokens = model.llmMaxContextLength ?: maxTokens,
         cacheDir =
           if (modelPath.startsWith("/data/local/tmp"))
             context.getExternalFilesDir(null)?.absolutePath
@@ -270,7 +270,7 @@ object LlmChatModelHelper : LlmModelHelper {
 
     val contents = mutableListOf<Content>()
     for (image in images) {
-      contents.add(Content.ImageBytes(image.toPngByteArray()))
+      contents.add(Content.ImageBytes(image.toImageByteArray()))
     }
     for (audioClip in audioClips) {
       contents.add(Content.AudioBytes(audioClip))
@@ -305,9 +305,38 @@ object LlmChatModelHelper : LlmModelHelper {
     )
   }
 
-  private fun Bitmap.toPngByteArray(): ByteArray {
+  private fun Bitmap.toImageByteArray(): ByteArray {
+    val maxSide = 512
+    val (newWidth, newHeight) =
+      if (width > height) {
+        if (width > maxSide) {
+          maxSide to (height * maxSide / width)
+        } else {
+          width to height
+        }
+      } else {
+        if (height > maxSide) {
+          (width * maxSide / height) to maxSide
+        } else {
+          width to height
+        }
+      }
+
+    val scaledBitmap =
+      if (newWidth != width || newHeight != height) {
+        Bitmap.createScaledBitmap(this, newWidth, newHeight, true)
+      } else {
+        this
+      }
+
     val stream = ByteArrayOutputStream()
-    this.compress(Bitmap.CompressFormat.PNG, 100, stream)
-    return stream.toByteArray()
+    scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
+    val result = stream.toByteArray()
+    
+    if (scaledBitmap != this) {
+      scaledBitmap.recycle()
+    }
+    
+    return result
   }
 }

@@ -15,6 +15,9 @@
  */
 
 package com.google.ai.edge.gallery.ui.llmchat
+ 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 import android.content.Context
 import androidx.compose.foundation.background
@@ -120,8 +123,8 @@ class LlmChatTask @Inject constructor() : CustomTask {
     LlmChatModelHelper.initialize(
       context = context,
       model = model,
-      supportImage = false,
-      supportAudio = false,
+      supportImage = model.llmSupportImage,
+      supportAudio = model.llmSupportAudio,
       onDone = onDone,
     )
   }
@@ -140,10 +143,17 @@ class LlmChatTask @Inject constructor() : CustomTask {
     val myData = data as CustomTaskDataForBuiltinTask
     var sendMessageTrigger by remember { mutableStateOf<SendMessageTrigger?>(null) }
 
+    val uiState by myData.modelManagerViewModel.uiState.collectAsState()
+    val selectedModel = uiState.selectedModel
+    val showImagePicker = selectedModel.llmSupportImage
+    val showAudioPicker = selectedModel.llmSupportAudio
+
     LlmChatScreen(
       modelManagerViewModel = myData.modelManagerViewModel,
       navigateUp = myData.onNavUp,
       sendMessageTrigger = sendMessageTrigger,
+      showImagePicker = showImagePicker,
+      showAudioPicker = showAudioPicker,
       curSystemPrompt = AISU_SYSTEM_PROMPT.trimIndent(),
       emptyStateComposable = { model ->
         AkiliChatEmptyState(
@@ -157,6 +167,98 @@ class LlmChatTask @Inject constructor() : CustomTask {
           },
         )
       },
+    )
+  }
+}
+
+class LlmAskImageTask @Inject constructor() : CustomTask {
+  override val task: Task =
+    Task(
+      id = BuiltInTaskId.LLM_ASK_IMAGE,
+      label = "Image Chat",
+      category = Category.LLM,
+      icon = Icons.Outlined.Forum,
+      models = mutableListOf(),
+      description = "Chat with AI about images",
+      shortDescription = "Image understanding",
+    )
+
+  override fun initializeModelFn(
+    context: Context,
+    coroutineScope: CoroutineScope,
+    model: Model,
+    onDone: (String) -> Unit,
+  ) {
+    LlmChatModelHelper.initialize(
+      context = context,
+      model = model,
+      supportImage = true,
+      supportAudio = model.llmSupportAudio,
+      onDone = onDone,
+    )
+  }
+
+  override fun cleanUpModelFn(
+    context: Context,
+    coroutineScope: CoroutineScope,
+    model: Model,
+    onDone: () -> Unit,
+  ) {
+    LlmChatModelHelper.cleanUp(model = model, onDone = onDone)
+  }
+
+  @Composable
+  override fun MainScreen(data: Any) {
+    val myData = data as CustomTaskDataForBuiltinTask
+    LlmAskImageScreen(
+      modelManagerViewModel = myData.modelManagerViewModel,
+      navigateUp = myData.onNavUp,
+    )
+  }
+}
+
+class LlmAskAudioTask @Inject constructor() : CustomTask {
+  override val task: Task =
+    Task(
+      id = BuiltInTaskId.LLM_ASK_AUDIO,
+      label = "Audio Chat",
+      category = Category.LLM,
+      icon = Icons.Outlined.Forum,
+      models = mutableListOf(),
+      description = "Chat with AI about audio clips",
+      shortDescription = "Audio understanding",
+    )
+
+  override fun initializeModelFn(
+    context: Context,
+    coroutineScope: CoroutineScope,
+    model: Model,
+    onDone: (String) -> Unit,
+  ) {
+    LlmChatModelHelper.initialize(
+      context = context,
+      model = model,
+      supportImage = model.llmSupportImage,
+      supportAudio = true,
+      onDone = onDone,
+    )
+  }
+
+  override fun cleanUpModelFn(
+    context: Context,
+    coroutineScope: CoroutineScope,
+    model: Model,
+    onDone: () -> Unit,
+  ) {
+    LlmChatModelHelper.cleanUp(model = model, onDone = onDone)
+  }
+
+  @Composable
+  override fun MainScreen(data: Any) {
+    val myData = data as CustomTaskDataForBuiltinTask
+    LlmAskAudioScreen(
+      modelManagerViewModel = myData.modelManagerViewModel,
+      navigateUp = myData.onNavUp,
     )
   }
 }
@@ -183,7 +285,24 @@ fun AkiliChatEmptyState(
         color = MaterialTheme.colorScheme.onSurface,
         textAlign = TextAlign.Center,
       )
-      Spacer(modifier = Modifier.height(6.dp))
+      
+      if (model.llmSupportImage || model.llmSupportAudio) {
+        Spacer(modifier = Modifier.height(12.dp))
+        Box(
+          modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+          Text(
+            text = "Multimodal Support (Images/Audio)",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary
+          )
+        }
+      }
+
+      Spacer(modifier = Modifier.height(12.dp))
       Text(
         text = "Note: I am a general-purpose AI chat assistant with limited knowledge in specific facts like about Ugandan languages",
         style = MaterialTheme.typography.bodyMedium,
@@ -247,7 +366,19 @@ private fun PromptChip(text: String, onClick: () -> Unit) {
 internal object LlmChatTaskModule {
   @Provides
   @IntoSet
-  fun provideTask(): CustomTask {
+  fun provideChatTask(): CustomTask {
     return LlmChatTask()
+  }
+
+  @Provides
+  @IntoSet
+  fun provideAskImageTask(): CustomTask {
+    return LlmAskImageTask()
+  }
+
+  @Provides
+  @IntoSet
+  fun provideAskAudioTask(): CustomTask {
+    return LlmAskAudioTask()
   }
 }

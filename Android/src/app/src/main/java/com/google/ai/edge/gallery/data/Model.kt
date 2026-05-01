@@ -287,6 +287,9 @@ data class Model(
   /** The max token for llm model. */
   val llmMaxToken: Int = 0,
 
+  /** The max context length for llm model. */
+  val llmMaxContextLength: Int? = null,
+
   /** Compatible accelerators. */
   val accelerators: List<Accelerator> = listOf(),
 
