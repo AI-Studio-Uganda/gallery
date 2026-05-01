@@ -645,11 +645,6 @@ fun AppTitleGm4(enableAnimation: Boolean) {
 
 @Composable
 private fun IntroText(enableAnimation: Boolean, gm4: Boolean) {
-  val litertUrl = "https://huggingface.co/litert-community"
-
-  // Intro text animation:
-  //
-  // fade in + slide up.
   val progress =
     if (!enableAnimation) {
       1f
@@ -661,25 +656,11 @@ private fun IntroText(enableAnimation: Boolean, gm4: Boolean) {
       )
     }
 
-  val introText = buildAnnotatedString {
-    val aisuUrl = "https://aistudio.ug"
-    if (gm4) {
-      append("Discover the power of offline AI with open-source models from the ")
-      append(buildTrackableUrlAnnotatedString(url = litertUrl, linkText = "LiteRT community"))
-      append(". Runs entirely on your device \u2014 no internet needed.")
-    } else {
-      append("${stringResource(R.string.app_intro)} ")
-      append(
-        buildTrackableUrlAnnotatedString(
-          url = litertUrl,
-          linkText = stringResource(R.string.litert_community_label),
-        )
-      )
-    }
-  }
+  // AISU: Clean tagline — no litert-community link for student users
   Text(
-    introText,
+    text = stringResource(R.string.app_intro),
     style = MaterialTheme.typography.bodyMedium,
+    color = MaterialTheme.colorScheme.onSurfaceVariant,
     modifier =
       Modifier.graphicsLayer {
         alpha = progress
@@ -726,16 +707,6 @@ private fun TryGm4IntroText(enableAnimation: Boolean) {
       color = MaterialTheme.colorScheme.onSurface,
     )
   }
-
-  Text(
-    "Gemma 3 1B & 2B are available now \u2014 lightweight models that run fast even on budget phones. Try them in AI Chat, Agent Skills, or the use cases below.",
-    style = MaterialTheme.typography.bodyMedium,
-    modifier =
-      Modifier.graphicsLayer {
-        alpha = progress
-        translationY = (CONTENT_COMPOSABLES_OFFSET_Y.dp * (1 - progress)).toPx()
-      },
-  )
 }
 
 @Composable

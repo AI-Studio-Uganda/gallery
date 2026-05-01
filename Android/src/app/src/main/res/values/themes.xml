@@ -20,8 +20,8 @@
   <style name="Theme.Gallery.SplashScreen" parent="Theme.SplashScreen">
       <!-- AISU brand background: near-black -->
       <item name="windowSplashScreenBackground">#0A0E0B</item>
-      <!-- Akili logo — static, no Edge Gallery animation -->
-      <item name="windowSplashScreenAnimatedIcon">@drawable/akili_icon</item>
+      <!-- Akili vector icon — lightweight, no Edge Gallery animation -->
+      <item name="windowSplashScreenAnimatedIcon">@drawable/akili_splash_icon</item>
       <item name="postSplashScreenTheme">@style/Theme.Gallery</item>
   </style>
   <style name="Theme.Gallery.OssLicenses" parent="Theme.AppCompat.Light.DarkActionBar">

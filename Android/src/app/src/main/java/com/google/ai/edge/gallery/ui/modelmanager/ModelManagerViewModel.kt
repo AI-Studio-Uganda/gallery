@@ -899,8 +899,7 @@ constructor(
         // Load model allowlist json.
         var modelAllowlist: ModelAllowlist? = null
 
-        // Try to read the test allowlist first.
-        Log.d(TAG, "Loading test model allowlist.")
+        // Try to read the test allowlist first (developer testing only).
         modelAllowlist = readModelAllowlistFromDisk(fileName = MODEL_ALLOWLIST_TEST_FILENAME)
 
         // Local test only.
@@ -914,9 +913,18 @@ constructor(
           }
         }
 
+        // AISU: Try the bundled assets allowlist first so the app works offline.
         if (modelAllowlist == null) {
-          // Load from github.
-          var version = BuildConfig.VERSION_NAME.replace(".", "_")
+          Log.d(TAG, "AISU: Loading bundled model allowlist from assets.")
+          modelAllowlist = readModelAllowlistFromAssets("model_allowlist_full.json")
+          if (modelAllowlist != null) {
+            Log.d(TAG, "AISU: Loaded bundled allowlist successfully.")
+          }
+        }
+
+        // If no bundled list, try GitHub (needs internet).
+        if (modelAllowlist == null) {
+          val version = BuildConfig.VERSION_NAME.replace(".", "_")
           val url = getAllowlistUrl(version)
           Log.d(TAG, "Loading model allowlist from internet. Url: $url")
           val data = getJsonResponse<ModelAllowlist>(url = url)
@@ -1084,6 +1092,19 @@ constructor(
     }
 
     return null
+  }
+
+  /** AISU: Read the model allowlist bundled in the app's assets folder. Works offline. */
+  private fun readModelAllowlistFromAssets(fileName: String): ModelAllowlist? {
+    return try {
+      Log.d(TAG, "Reading bundled model allowlist from assets: $fileName")
+      val content = context.assets.open(fileName).bufferedReader().use { it.readText() }
+      Log.d(TAG, "Bundled allowlist loaded (${content.length} bytes)")
+      Gson().fromJson(content, ModelAllowlist::class.java)
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to read bundled model allowlist from assets", e)
+      null
+    }
   }
 
   private fun isModelPartiallyDownloaded(model: Model): Boolean {

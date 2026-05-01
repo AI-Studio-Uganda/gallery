@@ -66,14 +66,8 @@ fun GalleryTopAppBar(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-          if (title == stringResource(R.string.app_name)) {
-            Icon(
-              painterResource(R.drawable.logo),
-              modifier = Modifier.size(20.dp),
-              contentDescription = null,
-              tint = Color.Unspecified,
-            )
-          }
+          // AISU: Logo removed from top bar — app name 'Akili' stands clean on its own.
+          // The PNG logo does not render well at small icon sizes.
           BasicText(
             text = title,
             maxLines = 1,

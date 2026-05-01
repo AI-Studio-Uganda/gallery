@@ -17,21 +17,34 @@
 package com.google.ai.edge.gallery.ui.llmchat
 
 import android.content.Context
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Forum
-import androidx.compose.material.icons.outlined.Mic
-import androidx.compose.material.icons.outlined.Mms
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.ai.edge.gallery.R
@@ -41,9 +54,9 @@ import com.google.ai.edge.gallery.data.BuiltInTaskId
 import com.google.ai.edge.gallery.data.Category
 import com.google.ai.edge.gallery.data.Model
 import com.google.ai.edge.gallery.data.Task
-import com.google.ai.edge.gallery.runtime.runtimeHelper
-import com.google.ai.edge.gallery.ui.theme.emptyStateContent
-import com.google.ai.edge.gallery.ui.theme.emptyStateTitle
+import com.google.ai.edge.gallery.ui.common.chat.ChatMessageText
+import com.google.ai.edge.gallery.ui.common.chat.ChatSide
+import com.google.ai.edge.gallery.ui.common.chat.SendMessageTrigger
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -53,21 +66,48 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// AI Chat.
+// Akili Chat (formerly "AI Chat").
+
+/** AISU Uganda system prompt — gives the model grounding in Uganda context. */
+private const val AISU_SYSTEM_PROMPT = """
+You are Akili, a helpful, general-purpose offline AI companion. 
+You are provided to users via infrastructure built by AI Studio Uganda (AISU). 
+
+Your purpose:
+- Help students, teachers, and learners explore and solve problems using AI technology.
+- Answer questions clearly and simply.
+- While you are provided by AISU, you are powered by technology from Google and the open-source community.
+
+Important Note on Knowledge:
+- You are a general-purpose AI model. While you are helpful, you may have limited knowledge of specific local Ugandan facts or context. 
+- If a user asks a highly specific local question, you should provide the best general information available but remind them to verify local details.
+- Greet users with a friendly 'Welcome' or 'Hello'.
+"""
+
+/** Starter prompts shown on the empty chat screen (like Claude/ChatGPT/Gemini). */
+private val AKILI_STARTER_PROMPTS = listOf(
+  "Help me write a professional CV",
+  "Explain how AI works in simple English",
+  "Give me 5 business ideas I can start today",
+  "Help me understand compound interest",
+  "Write an email to apply for an internship",
+  "Teach me the basics of Python",
+  "What are general ways to prevent malaria?",
+  "What is the role of AI Studio Uganda?",
+  "Give me a study plan for my exams",
+)
 
 class LlmChatTask @Inject constructor() : CustomTask {
   override val task: Task =
     Task(
       id = BuiltInTaskId.LLM_CHAT,
-      label = "AI Chat",
+      label = "Akili Chat",
       category = Category.LLM,
       icon = Icons.Outlined.Forum,
       models = mutableListOf(),
-      description = "Chat with on-device large language models",
-      shortDescription = "Chat with an on-device LLM",
-      docUrl = "https://github.com/google-ai-edge/LiteRT-LM/blob/main/kotlin/README.md",
-      sourceCodeUrl =
-        "https://github.com/google-ai-edge/gallery/blob/main/Android/src/app/src/main/java/com/google/ai/edge/gallery/ui/llmchat/LlmChatModelHelper.kt",
+      description = "Offline AI companion to talk to at anytime anywhere",
+      shortDescription = "Chat with offline AI",
+      defaultSystemPrompt = AISU_SYSTEM_PROMPT.trimIndent(),
       textInputPlaceHolderRes = R.string.text_input_placeholder_llm_chat,
     )
 
@@ -77,13 +117,12 @@ class LlmChatTask @Inject constructor() : CustomTask {
     model: Model,
     onDone: (String) -> Unit,
   ) {
-    model.runtimeHelper.initialize(
+    LlmChatModelHelper.initialize(
       context = context,
       model = model,
       supportImage = false,
       supportAudio = false,
       onDone = onDone,
-      coroutineScope = coroutineScope,
     )
   }
 
@@ -93,39 +132,118 @@ class LlmChatTask @Inject constructor() : CustomTask {
     model: Model,
     onDone: () -> Unit,
   ) {
-    model.runtimeHelper.cleanUp(model = model, onDone = onDone)
+    LlmChatModelHelper.cleanUp(model = model, onDone = onDone)
   }
 
   @Composable
   override fun MainScreen(data: Any) {
     val myData = data as CustomTaskDataForBuiltinTask
+    var sendMessageTrigger by remember { mutableStateOf<SendMessageTrigger?>(null) }
+
     LlmChatScreen(
       modelManagerViewModel = myData.modelManagerViewModel,
       navigateUp = myData.onNavUp,
-      emptyStateComposable = {
-        Box(modifier = Modifier.fillMaxSize()) {
-          Column(
-            modifier =
-              Modifier.align(Alignment.Center).padding(horizontal = 48.dp).padding(bottom = 48.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-          ) {
-            Text(stringResource(R.string.aichat_emptystate_title), style = emptyStateTitle)
-            Text(
-              stringResource(R.string.aichat_emptystate_content),
-              style = emptyStateContent,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-              textAlign = TextAlign.Center,
-            )
-          }
-        }
+      sendMessageTrigger = sendMessageTrigger,
+      curSystemPrompt = AISU_SYSTEM_PROMPT.trimIndent(),
+      emptyStateComposable = { model ->
+        AkiliChatEmptyState(
+          model = model,
+          onPromptSelected = { prompt ->
+            sendMessageTrigger =
+              SendMessageTrigger(
+                model = model,
+                messages = listOf(ChatMessageText(content = prompt, side = ChatSide.USER)),
+              )
+          },
+        )
       },
     )
   }
 }
 
+/** The welcome / empty state screen shown before any messages are sent. */
+@Composable
+fun AkiliChatEmptyState(
+  model: Model,
+  onPromptSelected: (String) -> Unit,
+) {
+  Box(modifier = Modifier.fillMaxSize()) {
+    Column(
+      modifier =
+        Modifier.align(Alignment.Center)
+          .fillMaxWidth()
+          .padding(bottom = 80.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      // Greeting
+      Text(
+        text = "Welcome! How can I assist you?",
+        style =
+          MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
+        color = MaterialTheme.colorScheme.onSurface,
+        textAlign = TextAlign.Center,
+      )
+      Spacer(modifier = Modifier.height(6.dp))
+      Text(
+        text = "Note: I am a general-purpose AI chat assistant with limited knowledge in specific facts like about Ugandan languages",
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.padding(horizontal = 32.dp),
+      )
+      Spacer(modifier = Modifier.height(28.dp))
+
+      // Starter prompt chips — scrollable horizontal row
+      Text(
+        text = "Try asking...",
+        style =
+          MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(start = 20.dp).fillMaxWidth(),
+      )
+      Spacer(modifier = Modifier.height(10.dp))
+
+      LazyRow(
+        contentPadding = PaddingValues(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+      ) {
+        items(AKILI_STARTER_PROMPTS) { prompt ->
+          PromptChip(
+            text = prompt,
+            onClick = { onPromptSelected(prompt.substringAfter(" ").trimStart() ) },
+          )
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun PromptChip(text: String, onClick: () -> Unit) {
+  Box(
+    modifier =
+      Modifier
+        .clip(RoundedCornerShape(20.dp))
+        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+        .border(
+          width = 1.dp,
+          color = MaterialTheme.colorScheme.outlineVariant,
+          shape = RoundedCornerShape(20.dp),
+        )
+        .clickable(onClick = onClick)
+        .padding(horizontal = 16.dp, vertical = 10.dp),
+  ) {
+    Text(
+      text = text,
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurface,
+      maxLines = 2,
+    )
+  }
+}
+
 @Module
-@InstallIn(SingletonComponent::class) // Or another component that fits your scope
+@InstallIn(SingletonComponent::class)
 internal object LlmChatTaskModule {
   @Provides
   @IntoSet
@@ -133,59 +251,3 @@ internal object LlmChatTaskModule {
     return LlmChatTask()
   }
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Ask image — DISABLED for AISU Akili (requires multimodal model not available in Gemma 3 1B/2B)
-// To re-enable, uncomment the module below.
-
-/*
-class LlmAskImageTask @Inject constructor() : CustomTask {
-  override val task: Task =
-    Task(
-      id = BuiltInTaskId.LLM_ASK_IMAGE,
-      label = "Ask Image",
-      category = Category.LLM,
-      icon = Icons.Outlined.Mms,
-      models = mutableListOf(),
-      description = "Ask questions about images with on-device large language models",
-      shortDescription = "Ask questions about images",
-    )
-  override fun initializeModelFn(context: Context, coroutineScope: CoroutineScope, model: Model, onDone: (String) -> Unit) {}
-  override fun cleanUpModelFn(context: Context, coroutineScope: CoroutineScope, model: Model, onDone: () -> Unit) {}
-  @Composable override fun MainScreen(data: Any) {}
-}
-
-@Module
-@InstallIn(SingletonComponent::class)
-internal object LlmAskImageModule {
-  @Provides @IntoSet fun provideTask(): CustomTask = LlmAskImageTask()
-}
-*/
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Audio Scribe — DISABLED for AISU Akili (requires audio-capable model not in Gemma 3 1B/2B)
-// To re-enable, uncomment the module below.
-
-/*
-class LlmAskAudioTask @Inject constructor() : CustomTask {
-  override val task: Task =
-    Task(
-      id = BuiltInTaskId.LLM_ASK_AUDIO,
-      label = "Audio Scribe",
-      category = Category.LLM,
-      icon = Icons.Outlined.Mic,
-      models = mutableListOf(),
-      description = "Transcribe and translate audio clips using on-device language models",
-      shortDescription = "Transcribe and translate audio",
-    )
-  override fun initializeModelFn(context: Context, coroutineScope: CoroutineScope, model: Model, onDone: (String) -> Unit) {}
-  override fun cleanUpModelFn(context: Context, coroutineScope: CoroutineScope, model: Model, onDone: () -> Unit) {}
-  @Composable override fun MainScreen(data: Any) {}
-}
-
-@Module
-@InstallIn(SingletonComponent::class)
-internal object LlmAskAudioModule {
-  @Provides @IntoSet fun provideTask(): CustomTask = LlmAskAudioTask()
-}
-*/

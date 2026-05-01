@@ -13,8 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// AISU Akili: Mobile Actions DISABLED — requires FunctionGemma 270m fine-tune.
+// Not relevant for a beginner student AI app.
+// To re-enable, uncomment the block below.
+
 package com.google.ai.edge.gallery.customtasks.mobileactions
 
+/*
 import com.google.ai.edge.gallery.customtasks.common.CustomTask
 import dagger.Module
 import dagger.Provides
@@ -31,3 +37,4 @@ internal object MobileActionsModule {
     return MobileActionsTask()
   }
 }
+*/

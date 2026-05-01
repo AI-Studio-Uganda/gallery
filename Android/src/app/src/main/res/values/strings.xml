@@ -26,15 +26,15 @@
   <string name="aicore_image_limit_message" translatable="false">The current model can only support 1 image per chat. To ask about another image, create a new chat.</string>
   <string name="aichat_initializing_title" translatable="false">Initializing model</string>
   <string name="aichat_initializing_content" translatable="false">Sit tight, this can take up to 1 minute</string>
-  <string name="app_intro" translatable="false">Your offline AI companion, powered by open-source models from</string>
+  <string name="app_intro" translatable="false">Think smarter with less. No limits. No internet</string>
   <string name="app_name" translatable="false">Akili</string>
-  <string name="app_name_first_part" translatable="false">AI Studio</string>
-  <string name="app_name_second_part" translatable="false">Uganda</string>
+  <string name="app_name_first_part" translatable="false">Akili</string>
+  <string name="app_name_second_part" translatable="false">by AI Studio Uganda</string>
   <string name="askimage_emptystate_title" translatable="false">Ask Image</string>
-  <string name="askimage_emptystate_content" translatable="false">To get started, tap the + below to add an image (max 10 images per chat) and type a prompt to ask a question about it!</string>
-  <string name="askimage_emptystate_content_aicore" translatable="false">To get started, tap the + below to add an image (max 1 image per chat) and type a prompt to ask a question about it!</string>
+  <string name="askimage_emptystate_content" translatable="false">To get started, tap the + below to add an image and type a prompt to ask a question about it!</string>
+  <string name="askimage_emptystate_content_aicore" translatable="false">To get started, tap the + below to add an image and type a prompt to ask a question about it!</string>
   <string name="askaudio_emptystate_title" translatable="false">Ask Audio</string>
-  <string name="askaudio_emptystate_content" translatable="false">To get started, tap the + below to add a audio clip (limited to 1 clip up to 30 seconds) and type a prompt to transcribe or translate it!</string>
+  <string name="askaudio_emptystate_content" translatable="false">To get started, tap the + below to add a audio clip and type a prompt to transcribe or translate it!</string>
   <string name="gallery_news_notification_title" translatable="false">Akili News</string>
   <string name="baseline" translatable="false">Baseline</string>
   <string name="basic_info" translatable="false">Basic info</string>

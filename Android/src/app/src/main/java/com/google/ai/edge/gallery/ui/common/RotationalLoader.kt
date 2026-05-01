@@ -16,129 +16,82 @@
 
 package com.google.ai.edge.gallery.ui.common
 
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.EaseInOut
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Brush.Companion.linearGradient
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.Dp
-import com.google.ai.edge.gallery.R
-import com.google.ai.edge.gallery.ui.theme.customColors
+import androidx.compose.ui.unit.dp
 
-private const val GRID_SPACING_FACTOR = 0.1f
-private const val ICON_SIZE_FACTOR = 0.3f
+// AISU Akili brand teal colour — matches the Akili icon palette.
+private val AkiliTeal = Color(0xFF1DB089)
 
 /**
- * A composable that displays a rotational and scaling animated loader, structured as a 2x2 grid.
+ * AISU Akili thinking indicator — three teal dots that pulse sequentially.
+ * Replaces the original Edge Gallery 2x2 rotating grid of Google-branded shapes.
  *
- * This loader uses two concurrent infinite animations:
- * 1. **Outer Rotation (rotationZ):** Continuously rotates the entire [LazyVerticalGrid] container
- *    using a custom [CubicBezierEasing] for a distinct non-linear rotation speed.
- * 2. **Inner Scale (scaleX, scaleY):** Cycles the scale of the individual grid items between 1.0
- *    and 0.4 using [EaseInOut] easing for a smooth pulsing/breathing effect.
+ * Shown when:
+ * - A model is initialising / loading
+ * - Akili is generating a response ("thinking")
+ * - A model download is in progress
  */
 @Composable
 fun RotationalLoader(size: Dp) {
-  val infiniteTransition = rememberInfiniteTransition(label = "infinite")
-  val rotationProgress by
-    infiniteTransition.animateFloat(
-      initialValue = 0f,
-      targetValue = 1f,
-      animationSpec =
-        infiniteRepeatable(
-          animation = tween(2000, easing = CubicBezierEasing(0.5f, 0.16f, 0f, 0.71f)),
-          repeatMode = RepeatMode.Restart,
-        ),
-    )
-  val scaleProgress by
-    infiniteTransition.animateFloat(
-      initialValue = 1f,
-      targetValue = 0.4f,
-      animationSpec =
-        infiniteRepeatable(
-          animation = tween(1000, easing = EaseInOut),
-          repeatMode = RepeatMode.Reverse,
-        ),
-    )
-  val curRotationZ = 45f + rotationProgress * 360f
-  val curScale = scaleProgress
+  val dotSize = size * 0.28f
+  val dotSpacing = size * 0.12f
 
-  val gridSpacing = size * GRID_SPACING_FACTOR
-  LazyVerticalGrid(
-    columns = GridCells.Fixed(2),
-    horizontalArrangement = Arrangement.spacedBy(gridSpacing),
-    verticalArrangement = Arrangement.spacedBy(gridSpacing),
-    modifier =
-      Modifier.size(size).graphicsLayer { rotationZ = curRotationZ }.clearAndSetSemantics {},
+  val infiniteTransition = rememberInfiniteTransition(label = "akili-dots")
+
+  // Each dot pulses with a phase offset so they animate in sequence (left → centre → right).
+  @Composable
+  fun pulseDot(delayMs: Int): Float {
+    val scale by infiniteTransition.animateFloat(
+      initialValue = 0.5f,
+      targetValue = 1.0f,
+      animationSpec = infiniteRepeatable(
+        animation = tween(600, delayMillis = delayMs, easing = EaseInOut),
+        repeatMode = RepeatMode.Reverse,
+      ),
+      label = "dot-scale-$delayMs",
+    )
+    return scale
+  }
+
+  val scale0 = pulseDot(0)
+  val scale1 = pulseDot(180)
+  val scale2 = pulseDot(360)
+
+  Row(
+    horizontalArrangement = Arrangement.spacedBy(dotSpacing),
+    verticalAlignment = Alignment.CenterVertically,
+    modifier = Modifier
+      .size(size)
+      .clearAndSetSemantics {},
   ) {
-    itemsIndexed(
-      listOf(
-        R.drawable.four_circle,
-        R.drawable.circle,
-        R.drawable.double_circle,
-        R.drawable.pantegon,
-      )
-    ) { index, imageResource ->
+    listOf(scale0, scale1, scale2).forEach { scale ->
       Box(
-        modifier = Modifier.size((size - gridSpacing) / 2),
-        contentAlignment =
-          when (index) {
-            0 -> Alignment.BottomEnd
-            1 -> Alignment.BottomStart
-            2 -> Alignment.TopEnd
-            3 -> Alignment.TopStart
-            else -> Alignment.Center
-          },
-      ) {
-        val colorIndex =
-          when (index) {
-            0 -> 2
-            1 -> 1
-            2 -> 0
-            else -> 3
-          }
-        val brush =
-          linearGradient(colors = MaterialTheme.customColors.taskBgGradientColors[colorIndex])
-        Image(
-          painter = painterResource(id = imageResource),
-          contentDescription = null,
-          modifier =
-            Modifier.size(size * ICON_SIZE_FACTOR)
-              .graphicsLayer {
-                // This is important to make blending mode work.
-                alpha = 0.99f
-                rotationZ = -curRotationZ
-                scaleX = curScale
-                scaleY = curScale
-              }
-              .drawWithContent {
-                drawContent()
-                drawRect(brush = brush, blendMode = BlendMode.SrcIn)
-              },
-          contentScale = ContentScale.Fit,
-        )
-      }
+        modifier = Modifier
+          .size(dotSize)
+          .graphicsLayer { scaleX = scale; scaleY = scale }
+          .clip(CircleShape)
+          .background(AkiliTeal),
+      )
     }
   }
 }
