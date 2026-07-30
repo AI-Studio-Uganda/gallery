@@ -19,13 +19,32 @@ package com.google.ai.edge.gallery.ui.common.chat
 // import com.google.ai.edge.gallery.ui.theme.GalleryTheme
 // import androidx.compose.ui.tooling.preview.Preview
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Done
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
@@ -34,10 +53,30 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.google.ai.edge.gallery.R
 import com.google.ai.edge.gallery.ui.common.MarkdownText
+import kotlinx.coroutines.delay
 
 /** Composable function to display the text content of a ChatMessageText. */
 @Composable
 fun MessageBodyText(message: ChatMessageText, inProgress: Boolean) {
+  val context = LocalContext.current
+  var copied by remember { mutableStateOf(false) }
+
+  // Reset "copied" checkmark after 2 seconds.
+  LaunchedEffect(copied) {
+    if (copied) {
+      delay(2000)
+      copied = false
+    }
+  }
+
+  val copyIconTint by animateColorAsState(
+    targetValue =
+      if (copied) MaterialTheme.colorScheme.primary
+      else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+    animationSpec = tween(300),
+    label = "copyTint",
+  )
+
   SelectionContainer {
     if (message.side == ChatSide.USER) {
       MarkdownText(
@@ -75,23 +114,32 @@ fun MessageBodyText(message: ChatMessageText, inProgress: Boolean) {
             },
         )
       }
+
+      // Copy button — only shown once the response has fully streamed.
+      if (!inProgress && message.content.isNotBlank()) {
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          modifier = Modifier.padding(start = 8.dp, bottom = 4.dp),
+        ) {
+          IconButton(
+            onClick = {
+              val clipboard =
+                context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+              val clip = ClipData.newPlainText("Akili response", message.content)
+              clipboard.setPrimaryClip(clip)
+              copied = true
+            },
+            modifier = Modifier.size(28.dp),
+          ) {
+            Icon(
+              imageVector = if (copied) Icons.Outlined.Done else Icons.Outlined.ContentCopy,
+              contentDescription = if (copied) "Copied" else "Copy response",
+              modifier = Modifier.size(16.dp),
+              tint = copyIconTint,
+            )
+          }
+        }
+      }
     }
   }
 }
-
-// @Preview(showBackground = true)
-// @Composable
-// fun MessageBodyTextPreview() {
-//   GalleryTheme {
-//     Column {
-//       Row(modifier = Modifier.padding(16.dp).background(MaterialTheme.colorScheme.primary)) {
-//         MessageBodyText(ChatMessageText(content = "Hello world", side = ChatSide.USER))
-//       }
-//       Row(
-//         modifier = Modifier.padding(16.dp).background(MaterialTheme.colorScheme.surfaceContainer)
-//       ) {
-//         MessageBodyText(ChatMessageText(content = "yes hello world", side = ChatSide.AGENT))
-//       }
-//     }
-//   }
-// }

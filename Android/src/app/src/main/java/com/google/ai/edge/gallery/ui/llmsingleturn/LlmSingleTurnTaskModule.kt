@@ -28,6 +28,8 @@ import com.google.ai.edge.gallery.data.Category
 import com.google.ai.edge.gallery.data.Model
 import com.google.ai.edge.gallery.data.Task
 import com.google.ai.edge.gallery.ui.llmchat.LlmChatModelHelper
+import com.google.ai.edge.gallery.ui.llmchat.getSystemPromptForModel
+import com.google.ai.edge.litertlm.Contents
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -63,6 +65,7 @@ class LlmSingleTurnTask @Inject constructor() : CustomTask {
       model = model,
       supportImage = false,
       supportAudio = false,
+      systemInstruction = Contents.of(getSystemPromptForModel(model)),
       onDone = onDone,
     )
   }

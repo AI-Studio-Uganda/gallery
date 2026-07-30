@@ -27,6 +27,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -475,6 +476,56 @@ fun ChatPanel(
                           enabled = !uiState.inProgress,
                         )
                       }
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          // Follow-up suggestions — after last completed AI response.
+          if (messages.isNotEmpty() && !uiState.inProgress) {
+            val lastMessage = messages.lastOrNull()
+            val isLastFromAgent = lastMessage?.side == ChatSide.AGENT &&
+              (lastMessage.type == ChatMessageType.TEXT || lastMessage.type == ChatMessageType.THINKING)
+
+            if (isLastFromAgent) {
+              item(key = "followUpSuggestions") {
+                val followUps = remember(messages.size) {
+                  listOf(
+                    "Can you explain that more simply?",
+                    "Give me a real-world example",
+                    "What are the key takeaways?",
+                    "Summarize in 3 bullet points",
+                    "How is this relevant to students?",
+                    "What should I learn next?",
+                  ).shuffled().take(3)
+                }
+                Row(
+                  modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp, end = 48.dp, top = 8.dp, bottom = 4.dp),
+                  horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                  followUps.forEach { suggestion ->
+                    Box(
+                      modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f))
+                        .clickable {
+                          onSendMessage(
+                            selectedModel,
+                            listOf(ChatMessageText(content = suggestion, side = ChatSide.USER)),
+                          )
+                        }
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    ) {
+                      Text(
+                        text = suggestion,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        maxLines = 1,
+                      )
                     }
                   }
                 }

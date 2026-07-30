@@ -29,12 +29,19 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.GraphicEq
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.Psychology
+import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material.icons.rounded.UnfoldLess
 import androidx.compose.material.icons.rounded.UnfoldMore
 import androidx.compose.material3.DropdownMenu
@@ -42,6 +49,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -55,6 +63,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
@@ -63,6 +72,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.ai.edge.gallery.R
 import com.google.ai.edge.gallery.data.Model
+import com.google.ai.edge.gallery.data.ModelCapability
 import com.google.ai.edge.gallery.data.ModelDownloadStatus
 import com.google.ai.edge.gallery.data.ModelDownloadStatusType
 import com.google.ai.edge.gallery.data.RuntimeType
@@ -174,20 +184,25 @@ fun ModelItem(
           }
         }
       }
-      AnimatedContent(isExpanded, label = "item_layout_transition") { targetState ->
-        // Show description when expanded.
-        if (targetState) {
-          Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            if (model.info.isNotEmpty()) {
-              MarkdownText(
-                model.info,
-                smallFontSize = true,
-                textColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 12.dp),
-              )
-            }
-            if (isAicore && isDownloadFailed) {
-              AICoreAccessPanel()
+        AnimatedContent(isExpanded, label = "item_layout_transition") { targetState ->
+        // Always show capability badges — not gated on expanded state.
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+          ModelCapabilityBadges(model = model)
+
+          // Show description when expanded.
+          if (targetState) {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+              if (model.info.isNotEmpty()) {
+                MarkdownText(
+                  model.info,
+                  smallFontSize = true,
+                  textColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                  modifier = Modifier.padding(top = 4.dp),
+                )
+              }
+              if (isAicore && isDownloadFailed) {
+                AICoreAccessPanel()
+              }
             }
           }
         }
@@ -478,4 +493,58 @@ fun calculateDownloadProgress(downloadStatus: ModelDownloadStatus?): Float {
   val totalBytes = downloadStatus?.totalBytes ?: 0L
   if (totalBytes == 0L) return 0f
   return receivedBytes.toFloat() / totalBytes.toFloat()
+}
+
+/** Small row of capability pills shown on every model card. */
+@Composable
+fun ModelCapabilityBadges(model: Model, modifier: Modifier = Modifier) {
+  data class Badge(val label: String, val icon: ImageVector)
+
+  val badges = remember(model.name) {
+    buildList {
+      add(Badge("Text", Icons.Outlined.TextFields))
+      if (model.llmSupportImage) add(Badge("Vision", Icons.Outlined.Image))
+      if (model.llmSupportAudio) add(Badge("Audio", Icons.Outlined.GraphicEq))
+      if (model.capabilities.contains(ModelCapability.LLM_THINKING)) {
+        add(Badge("Thinking", Icons.Outlined.Psychology))
+      }
+    }
+  }
+
+  LazyRow(
+    horizontalArrangement = Arrangement.spacedBy(6.dp),
+    modifier = modifier,
+  ) {
+    items(badges) { badge ->
+      CapabilityChip(label = badge.label, icon = badge.icon)
+    }
+  }
+}
+
+/** A single tiny capability pill. */
+@Composable
+private fun CapabilityChip(label: String, icon: ImageVector) {
+  Surface(
+    shape = RoundedCornerShape(6.dp),
+    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
+    tonalElevation = 0.dp,
+  ) {
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(3.dp),
+      modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+    ) {
+      Icon(
+        icon,
+        contentDescription = label,
+        modifier = Modifier.size(14.dp).alpha(0.7f),
+        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+      )
+      Text(
+        text = label,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSecondaryContainer,
+      )
+    }
+  }
 }

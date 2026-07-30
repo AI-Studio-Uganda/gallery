@@ -50,6 +50,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.google.ai.edge.gallery.R
 import com.google.ai.edge.gallery.customtasks.common.CustomTask
 import com.google.ai.edge.gallery.customtasks.common.CustomTaskDataForBuiltinTask
@@ -60,6 +61,7 @@ import com.google.ai.edge.gallery.data.Task
 import com.google.ai.edge.gallery.ui.common.chat.ChatMessageText
 import com.google.ai.edge.gallery.ui.common.chat.ChatSide
 import com.google.ai.edge.gallery.ui.common.chat.SendMessageTrigger
+import com.google.ai.edge.litertlm.Contents
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -67,25 +69,6 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Akili Chat (formerly "AI Chat").
-
-/** AISU Uganda system prompt — gives the model grounding in Uganda context. */
-private const val AISU_SYSTEM_PROMPT = """
-You are Akili, a helpful, general-purpose offline AI companion. 
-You are provided to users via infrastructure built by AI Studio Uganda (AISU). 
-
-Your purpose:
-- Help students, teachers, and learners explore and solve problems using AI technology.
-- Answer questions clearly and simply.
-- While you are provided by AISU, you are powered by technology from Google and the open-source community.
-
-Important Note on Knowledge:
-- You are a general-purpose AI model. While you are helpful, you may have limited knowledge of specific local Ugandan facts or context. 
-- If a user asks a highly specific local question, you should provide the best general information available but remind them to verify local details.
-- Greet users with a friendly 'Welcome' or 'Hello'.
-"""
 
 /** Starter prompts shown on the empty chat screen (like Claude/ChatGPT/Gemini). */
 private val AKILI_STARTER_PROMPTS = listOf(
@@ -110,7 +93,7 @@ class LlmChatTask @Inject constructor() : CustomTask {
       models = mutableListOf(),
       description = "Offline AI companion to talk to at anytime anywhere",
       shortDescription = "Chat with offline AI",
-      defaultSystemPrompt = AISU_SYSTEM_PROMPT.trimIndent(),
+      defaultSystemPrompt = AISU_SYSTEM_PROMPT_TEXT.trimIndent(),
       textInputPlaceHolderRes = R.string.text_input_placeholder_llm_chat,
     )
 
@@ -125,6 +108,7 @@ class LlmChatTask @Inject constructor() : CustomTask {
       model = model,
       supportImage = model.llmSupportImage,
       supportAudio = model.llmSupportAudio,
+      systemInstruction = Contents.of(getSystemPromptForModel(model)),
       onDone = onDone,
     )
   }
@@ -154,7 +138,7 @@ class LlmChatTask @Inject constructor() : CustomTask {
       sendMessageTrigger = sendMessageTrigger,
       showImagePicker = showImagePicker,
       showAudioPicker = showAudioPicker,
-      curSystemPrompt = AISU_SYSTEM_PROMPT.trimIndent(),
+      curSystemPrompt = AISU_SYSTEM_PROMPT_TEXT.trimIndent(),
       emptyStateComposable = { model ->
         AkiliChatEmptyState(
           model = model,
@@ -194,6 +178,7 @@ class LlmAskImageTask @Inject constructor() : CustomTask {
       model = model,
       supportImage = true,
       supportAudio = model.llmSupportAudio,
+      systemInstruction = Contents.of(getSystemPromptForModel(model)),
       onDone = onDone,
     )
   }
@@ -240,6 +225,7 @@ class LlmAskAudioTask @Inject constructor() : CustomTask {
       model = model,
       supportImage = model.llmSupportImage,
       supportAudio = true,
+      systemInstruction = Contents.of(getSystemPromptForModel(model)),
       onDone = onDone,
     )
   }
@@ -269,6 +255,10 @@ fun AkiliChatEmptyState(
   model: Model,
   onPromptSelected: (String) -> Unit,
 ) {
+  // Determine if this model is small (< 1 GB) for the hallucination banner.
+  val isSmallModel = model.sizeInBytes in 1..999_999_999L
+  var showDisclaimer by remember(model.name) { mutableStateOf(isSmallModel) }
+
   Box(modifier = Modifier.fillMaxSize()) {
     Column(
       modifier =
@@ -285,7 +275,7 @@ fun AkiliChatEmptyState(
         color = MaterialTheme.colorScheme.onSurface,
         textAlign = TextAlign.Center,
       )
-      
+
       if (model.llmSupportImage || model.llmSupportAudio) {
         Spacer(modifier = Modifier.height(12.dp))
         Box(
@@ -304,12 +294,19 @@ fun AkiliChatEmptyState(
 
       Spacer(modifier = Modifier.height(12.dp))
       Text(
-        text = "Note: I am a general-purpose AI chat assistant with limited knowledge in specific facts like about Ugandan languages",
+        text = "Note: This is an offline AI assistant with general knowledge. Answers may not always be accurate — please verify important information.",
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
         modifier = Modifier.padding(horizontal = 32.dp),
       )
+
+      // Hallucination disclaimer — only for small models, dismissible.
+      if (showDisclaimer) {
+        Spacer(modifier = Modifier.height(10.dp))
+        HallucinationBanner(onDismiss = { showDisclaimer = false })
+      }
+
       Spacer(modifier = Modifier.height(28.dp))
 
       // Starter prompt chips — scrollable horizontal row
@@ -329,13 +326,56 @@ fun AkiliChatEmptyState(
         items(AKILI_STARTER_PROMPTS) { prompt ->
           PromptChip(
             text = prompt,
-            onClick = { onPromptSelected(prompt.substringAfter(" ").trimStart() ) },
+            onClick = { onPromptSelected(prompt) },
           )
         }
       }
     }
   }
 }
+
+/** Dismissible yellow banner warning users that small models may hallucinate. */
+@Composable
+private fun HallucinationBanner(onDismiss: () -> Unit) {
+  Box(
+    modifier = Modifier
+      .padding(horizontal = 24.dp)
+      .clip(RoundedCornerShape(10.dp))
+      .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f))
+      .clickable(onClick = onDismiss)
+      .padding(horizontal = 14.dp, vertical = 10.dp)
+  ) {
+    Column {
+      Text(
+        text = "Small model notice",
+        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+        color = MaterialTheme.colorScheme.onTertiaryContainer,
+      )
+      Spacer(modifier = Modifier.height(2.dp))
+      Text(
+        text = "This is a compact model. It may sometimes give inaccurate or made-up answers. Always verify important information.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.85f),
+      )
+      Spacer(modifier = Modifier.height(4.dp))
+      Text(
+        text = "Tap to dismiss",
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.5f),
+      )
+    }
+  }
+}
+
+/** Suggested follow-up prompts shown after a completed AI response. */
+private val FOLLOW_UP_PROMPTS = listOf(
+  "Can you explain that more simply?",
+  "Give me a real-world example",
+  "What are the key takeaways?",
+  "Summarize this in 3 bullet points",
+  "How is this relevant to students?",
+  "What should I learn next?",
+)
 
 @Composable
 private fun PromptChip(text: String, onClick: () -> Unit) {

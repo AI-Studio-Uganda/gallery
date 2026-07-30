@@ -62,8 +62,8 @@ open class LlmChatViewModelBase() : ChatViewModel() {
       setInProgress(true)
       setPreparing(true)
 
-      // Loading.
-      addMessage(model = model, message = ChatMessageLoading(accelerator = accelerator))
+      // Loading — show model name so the user knows what is processing.
+      addMessage(model = model, message = ChatMessageLoading(accelerator = model.name))
 
       // Wait for instance to be initialized.
       while (model.instance == null) {
